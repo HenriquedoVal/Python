@@ -1,1 +1,1 @@
-Alguns algoritmos interessantes retirados do CodeSignal e HackerRank
+Alguns algoritmos interessantes retirados do CodeSignal.
