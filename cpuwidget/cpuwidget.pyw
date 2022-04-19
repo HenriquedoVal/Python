@@ -23,19 +23,20 @@ def eq_cpu(): # Mesma coisa aqui
 
 def exit_prog(icon):
     icon.stop()
-    os._exit(1)
+    os._exit(0)
     
 def get_image():
     info = round(psutil.cpu_percent(interval=1))
+    font_size = 15 if info == 100 else 16
     red = int(info > 74)                                    # Define as cores dos icones
     yellow = int(49 < info < 75)                            #
     g = 255*(yellow | int(not red))                         #
     b = 255*(int(not red and not yellow))                   #
     
-    fnt = ImageFont.truetype('C:\\Windows\\Fonts\\msyhl.ttc', 14) # verificar a disponibilidade da fonte na máquina
-    img = Image.new('RGBA', (16,16), (0,0,0,0))
+    fnt = ImageFont.truetype('C:\\Windows\\Fonts\\msyh.ttc', font_size) # verificar a disponibilidade da fonte na máquina
+    img = Image.new('RGBA', (22,22), (0,0,0,0))
     d = ImageDraw.Draw(img)
-    d.text((8,8), str(info), font=fnt, anchor='mm', fill=(255, g, b, 255))
+    d.text((10,11), str(info), font=fnt, anchor='mm', fill=(255, g, b, 255))
     return img
 
 def main():
@@ -43,7 +44,7 @@ def main():
             pystray.MenuItem('Normal CPU', eq_cpu, checked=get_state(4), radio=True),
             pystray.MenuItem('Exit', exit_prog))
 
-    icon = pystray.Icon('CpuIcon', get_image(), 'Battery plan settings', menu)
+    icon = pystray.Icon('CpuIcon', get_image(), 'Percent CPU usage', menu)
     
     icon.run_detached()
      
