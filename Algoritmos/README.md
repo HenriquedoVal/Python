@@ -1,1 +1,2 @@
-Alguns algoritmos interessantes retirados do CodeSignal.
+- _CodeSignal.ipynb_ contém alguns problemas mais interessantes retirados do site CodeSignal com a minha solução. _testes.py_ é um módulo de apoio para esse notebook.
+- _fifo\_circular.py linked\_list.py sort.py_ são implementações de algorítmos clássicos em Python.
