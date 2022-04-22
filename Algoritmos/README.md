@@ -1,2 +1,2 @@
 - _CodeSignal.ipynb_ contém alguns problemas mais interessantes retirados do site CodeSignal com a minha solução. _testes.py_ é um módulo de apoio para esse notebook.
-- _fifo\_circular.py linked\_list.py sort.py_ são implementações de algorítmos clássicos em Python.
+- _fifo\_circular.py, linked\_list.py_ e _sort.py_ são implementações de algoritmos clássicos em Python.
