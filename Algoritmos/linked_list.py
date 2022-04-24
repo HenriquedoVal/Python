@@ -28,6 +28,9 @@ class LinkedList:
             self.__counter = -1
             raise StopIteration
         return self.llist[self.__counter]
+    
+    def __getitem__(self, x: int):
+        return self.llist[x]
 
     def append(self, x: Node):
         self.llist.append(x)
