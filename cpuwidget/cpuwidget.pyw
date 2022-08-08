@@ -1,26 +1,27 @@
-import pystray
 import os
-import psutil
 import subprocess
 import ctypes
 from PIL import Image, ImageDraw, ImageFont
 from datetime import datetime
 
+import pystray
+import psutil
 
-def set_sec(v):
+
+def set_sec(v):  # Lê o valor atual de "sec"
     def inner(item):
         global sec
         sec = v
     return inner
 
 
-def get_state(v):
+def get_state(v):  # Lê a configuração atual do plano de energia.
     def inner(item):
         return '*' in os.popen('powercfg /l').read().splitlines()[v]
     return inner
 
 
-def full_cpu():
+def full_cpu():  # Muda a configuração sem abrir nova janela.
     global startupinfo
     subprocess.Popen('powercfg /s 16a16fa7-cccc-45bb-a7f5-3a8ca6dc4d8e',
                      startupinfo=startupinfo).communicate()
@@ -81,7 +82,7 @@ def main():
 
     signal22h = signal04h = 0
     while 1:
-
+        # Totalmente pessoal, notifica em horários e dias específicos.
         if not signal22h and int(datetime.now().strftime('%j')) % 2 != 0:
             if datetime.now().hour == 22:
                 icon.notify('Z99')
