@@ -8,7 +8,7 @@ import pystray
 import psutil
 
 
-def set_sec(v):  # Lê o valor atual de "sec"
+def set_sec(v):  # Atribui o valor de "sec"
     def inner(item):
         global sec
         sec = v
