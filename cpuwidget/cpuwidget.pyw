@@ -22,21 +22,18 @@ def get_state(v):  # Lê a configuração atual do plano de energia.
 
 
 def full_cpu():  # Muda a configuração sem abrir nova janela.
-    global startupinfo
     subprocess.Popen('powercfg /s 16a16fa7-cccc-45bb-a7f5-3a8ca6dc4d8e',
-                     startupinfo=startupinfo).communicate()
+                     creationflags=subprocess.CREATE_NO_WINDOW).communicate()
 
 
 def eq_cpu():
-    global startupinfo
     subprocess.Popen('powercfg /s 381b4222-f694-41f0-9685-ff5bb260df2e',
-                     startupinfo=startupinfo).communicate()
+                     creationflags=subprocess.CREATE_NO_WINDOW).communicate()
 
 
 def sleepless():
-    global startupinfo
     subprocess.Popen('powercfg /s d8486d7c-b26d-4924-9399-4d78100ddbf0',
-                     startupinfo=startupinfo).communicate()
+                     creationflags=subprocess.CREATE_NO_WINDOW).communicate()
 
 
 def exit_prog(icon):
@@ -100,7 +97,5 @@ def main():
 if __name__ == '__main__':
     ctypes.windll.shcore.SetProcessDpiAwareness(1)
     sec = 0.5
-    startupinfo = subprocess.STARTUPINFO()
-    startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
-    os.popen(f'wmic Process {os.getpid()} Call SetPriority 128')
+    psutil.Process(os.getpid()).nice(128)
     main()
