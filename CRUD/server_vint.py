@@ -53,12 +53,6 @@ def cars_id(arg=None):
         return flask.Response(status=404)
 
 
-@app.route('/cars', methods=['POST'])
-def cars_post():
-    with open('vint.json', 'r+') as file:
-        pass
-
-
 if __name__ == "__main__":
     from werkzeug.serving import WSGIRequestHandler
     WSGIRequestHandler.protocol_version = 'HTTP/1.1'
