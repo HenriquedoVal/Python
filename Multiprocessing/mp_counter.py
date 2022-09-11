@@ -17,10 +17,9 @@ def proc(data, in_q, out_q):
     data = re.findall("[\w]+", data)  # noqa: W605
     data = [i.lower() for i in data]
     data = {i: data.count(i) for i in set(data)}
-    out_q.put((data, mp.current_process().pid))
+    out_q.put(data)
 
-    order = in_q.get()
-    if order:
+    while (order := in_q.get()):
         res = merge(order[0], order[1])
         out_q.put(res)
 
@@ -37,15 +36,19 @@ def main():
         file = stream.read()
 
     # Split file to distribute through four Processes
+    cpu_count = mp.cpu_count()
+    if cpu_count == 1:
+        print('Just one process can be run at a time')
+        return linear()
     in_q = mp.Queue()
     out_q = mp.Queue()
     previous = 0
     pace = 0
-    for ind in range(0, len(file) + 1, len(file)//4):
+    for ind in range(0, len(file) + 1, len(file)//cpu_count):
         if ind == 0:
             pace += 1
             continue
-        if pace != 4:
+        if pace != cpu_count:
             ind = file.index(' ', ind)
         else:
             ind = len(file)
@@ -56,22 +59,30 @@ def main():
         previous = ind
         pace += 1
 
-    # Get return and pids to choose the ones that can finish
-    # I'll need just two of them for os.cpu_count() == 4
-    result = []
-    pids = []
-    for _ in range(4):
-        answer = out_q.get()
-        result.append(answer[0])
-        pids.append(answer[1])
+    # Keeps sending to queue while it can be done in parallel
+    cpu_needed = cpu_count / 2
+    halves_left = 0
+    while cpu_needed >= 2:
+        for _ in range(int(cpu_needed)):
+            in_q.put((out_q.get(), out_q.get()))
+        if cpu_needed != int(cpu_needed):
+            cpu_needed -= .5
+            halves_left += .5
+        cpu_needed /= 2
+        if cpu_needed + halves_left == int(cpu_needed + halves_left):
+            cpu_needed += halves_left
+            halves_left = 0
 
-    for pid in pids:
-        if pid in pids[:2]:
-            in_q.put((result.pop(), result.pop()))
-        else:
-            in_q.put(0)  # or any with bool() == False
+    # Sends signal for processes to end
+    for _ in range(cpu_count):
+        in_q.put(0)
 
     final = merge(out_q.get(), out_q.get())
+
+    # Deals with odd number of processes
+    if cpu_needed != int(cpu_needed) or halves_left:
+        final = merge(final, out_q.get())
+
     final = {i[0]: i[1]
              for i in sorted(
                  list(final.items()),
