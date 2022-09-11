@@ -4,7 +4,7 @@ Reaproveitamento de um código _WordCounter_ utilizando as lib Multiprocessing e
 O "mp\_counter.py" seria a versão mais completa e útil do paralelismo para o mesmo fim. Ele distribui partes do arquivo que terá suas palavras contadas pelo número de processos em paralelo possíveis e mescla os resultados; ao final, compara o resultado com uma contagem de forma linear.  
   
 ~~~
-\> python mp\_counter.py sherlock.txt output.txt
+> python mp_counter.py sherlock.txt output.txt
 ~~~
 Output:
 ~~~Python
