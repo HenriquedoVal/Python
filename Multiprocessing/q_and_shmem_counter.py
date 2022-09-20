@@ -2,6 +2,7 @@ import re
 import sys
 import time
 import multiprocessing as mp
+from multiprocessing.shared_memory import SharedMemory
 
 
 def linear():
@@ -23,7 +24,7 @@ def linear():
     return file
 
 
-def merge(a: dict, b: dict):  # dict().update is not what I want
+def merge(a, b):
     for item in b:
         if item in a:
             a[item] += b[item]
@@ -32,11 +33,14 @@ def merge(a: dict, b: dict):  # dict().update is not what I want
     return a
 
 
-def proc(data, in_q, out_q):
+def proc(start, stop, in_q, out_q):
+    sh_file = SharedMemory(name='shared file')
+    data = sh_file.buf[start:stop].tobytes().decode()
     data = re.findall("[\w]+", data)  # noqa: W605
     data = [i.lower() for i in data]
     data = {i: data.count(i) for i in set(data)}
     out_q.put(data)
+    sh_file.close()
 
     while (order := in_q.get()):
         res = merge(order[0], order[1])
@@ -57,14 +61,17 @@ def main():
         linear()
         return 0
 
-    # This encoding might be a problem for other files
-    with open(sys.argv[1], 'r', encoding='utf8') as stream:
+    with open(sys.argv[1], 'rb') as stream:
         file = stream.read()
 
-    in_q = mp.Queue()   # mp.Pipe is not the best option here
-    out_q = mp.Queue()  # as I want two distinct objects
+    # Put only the largest thing that would be serialized in shared memory
+    sh_file = SharedMemory(create=True,
+                           name='shared file',
+                           size=len(file))  # Same as sys.getsizeof
+    sh_file.buf[:] = file
 
-    # Split file to distribute through processes
+    in_q = mp.Queue()
+    out_q = mp.Queue()
     previous = 0
     pace = 0
     for ind in range(0, len(file) + 1, len(file)//cpu_count):
@@ -72,12 +79,12 @@ def main():
             pace += 1
             continue
         if pace != cpu_count:
-            ind = file.index(' ', ind)
+            ind = file.index(b' ', ind)
         else:
             ind = len(file)
         mp.Process(
                 target=proc,
-                args=(file[previous:ind], in_q, out_q)
+                args=(previous, ind, in_q, out_q)
         ).start()
         previous = ind
         pace += 1
@@ -92,7 +99,6 @@ def main():
             cpu_needed -= .5
             halves_left += .5
         cpu_needed /= 2
-        # Only use for cpu_count == 14 as far as I know
         if cpu_needed + halves_left == int(cpu_needed + halves_left):
             cpu_needed += halves_left
             halves_left = 0
@@ -113,10 +119,12 @@ def main():
                  key=lambda x: x[1],
                  reverse=True)
              }
-
     with open(sys.argv[2], 'w') as stream:
         for k, v in final.items():
             print(f'{k}: {v}', file=stream)
+
+    sh_file.close()
+    sh_file.unlink()
 
     print(f'Multiprocessing took {time.perf_counter() - init:.2f}s')
     print('Starting "linear"')
