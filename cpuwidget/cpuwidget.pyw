@@ -44,16 +44,19 @@ def exit_prog(icon):
 def get_image():
     global sec
     info = round(psutil.cpu_percent(interval=sec))
-    font_size = 15 if info == 100 else 16
+    if info == 100:
+        font_size, *pos_tuple = 21, 14, 15
+    else:
+        font_size, *pos_tuple = 24, 16, 15
     red = int(info > 74)
     yellow = int(49 < info < 75)
     g = 255*(yellow | int(not red))
     b = 255*(int(not red and not yellow))
 
     fnt = ImageFont.truetype('C:\\Windows\\Fonts\\msyh.ttc', font_size)
-    img = Image.new('RGBA', (22, 22), (0, 0, 0, 0))
+    img = Image.new('RGBA', (32, 32), (0, 0, 0, 0))
     d = ImageDraw.Draw(img)
-    d.text((10, 11), str(info), font=fnt, anchor='mm', fill=(255, g, b, 255))
+    d.text(pos_tuple, str(info), font=fnt, anchor='mm', fill=(255, g, b, 255))
     return img
 
 
