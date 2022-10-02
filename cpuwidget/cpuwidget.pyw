@@ -8,20 +8,20 @@ import pystray
 import psutil
 
 
-def set_sec(v):  # Atribui o valor de "sec"
+def set_sec(v):
     def inner(item):
         global sec
         sec = v
     return inner
 
 
-def get_state(v):  # Lê a configuração atual do plano de energia.
+def get_state(v):
     def inner(item):
         return '*' in os.popen('powercfg /l').read().splitlines()[v]
     return inner
 
 
-def full_cpu():  # Muda a configuração sem abrir nova janela.
+def full_cpu():
     subprocess.Popen('powercfg /s 16a16fa7-cccc-45bb-a7f5-3a8ca6dc4d8e',
                      creationflags=subprocess.CREATE_NO_WINDOW).communicate()
 
@@ -42,21 +42,29 @@ def exit_prog(icon):
 
 
 def get_image():
-    global sec
+    global sec, base_color
+
     info = round(psutil.cpu_percent(interval=sec))
     if info == 100:
-        font_size, *pos_tuple = 21, 14, 15
+        font_size, *pos_tuple = 21, 14, 14
     else:
-        font_size, *pos_tuple = 24, 16, 15
-    red = int(info > 74)
-    yellow = int(49 < info < 75)
-    g = 255*(yellow | int(not red))
-    b = 255*(int(not red and not yellow))
+        font_size, *pos_tuple = 24, 18, 14
+
+    # More code but much more readable
+    black = base_color != 'white'
+    if black and info < 50:
+        colors_tuple = (0, 0, 0, 255)
+    elif info < 50:
+        colors_tuple = (255, 255, 255, 255)
+    elif info < 75:
+        colors_tuple = (255, 255, 0, 255)
+    else:
+        colors_tuple = (255, 0, 0, 255)
 
     fnt = ImageFont.truetype('C:\\Windows\\Fonts\\msyh.ttc', font_size)
     img = Image.new('RGBA', (32, 32), (0, 0, 0, 0))
     d = ImageDraw.Draw(img)
-    d.text(pos_tuple, str(info), font=fnt, anchor='mm', fill=(255, g, b, 255))
+    d.text(pos_tuple, str(info), font=fnt, anchor='mm', fill=colors_tuple)
     return img
 
 
@@ -82,7 +90,7 @@ def main():
 
     signal22h = signal04h = 0
     while 1:
-        # Totalmente pessoal, notifica em horários e dias específicos.
+
         if not signal22h and int(datetime.now().strftime('%j')) % 2 != 0:
             if datetime.now().hour == 22:
                 icon.notify('Z99')
@@ -100,5 +108,6 @@ def main():
 if __name__ == '__main__':
     ctypes.windll.shcore.SetProcessDpiAwareness(1)
     sec = 0.5
+    base_color = 'white'  # Change for getting black numbers
     psutil.Process(os.getpid()).nice(128)
     main()
