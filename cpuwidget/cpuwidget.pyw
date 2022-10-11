@@ -4,8 +4,6 @@ import ctypes
 from PIL import Image, ImageDraw, ImageFont
 from datetime import datetime
 import threading as th
-# import sys
-# from multiprocessing.shared_memory import SharedMemory
 
 import pystray
 import psutil
@@ -47,9 +45,6 @@ def sleepless():
 
 
 def exit_prog(icon):
-    # global shm
-    # shm.close()
-    # shm.unlink()
     icon._hide()
     os._exit(0)
 
@@ -83,7 +78,7 @@ def get_image():
 
 
 def main():
-    global sec  # , shm
+    global sec
 
     t = th.Thread(target=darkdetect.listener, args=(callback,))
     t.daemon = True
@@ -121,20 +116,10 @@ def main():
 
         icon.icon = get_image()
 
-        # if shm.buf.tobytes() == b'1':
-        #     shm.buf[:] = b'0'
-        #     exit_prog(icon)
-
 
 if __name__ == '__main__':
     ctypes.windll.shcore.SetProcessDpiAwareness(1)
     sec = 0.5
     black = darkdetect.isLight()
     psutil.Process(os.getpid()).nice(128)
-    # try:
-    #     shm = SharedMemory(create=True, name='fakesignal', size=1)
-    # except OSError:
-    #     import time
-    #     time.sleep(1)
-    #    shm = SharedMemory(create=True, name='fakesignal', size=1)
     main()
