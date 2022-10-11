@@ -3,9 +3,19 @@ import subprocess
 import ctypes
 from PIL import Image, ImageDraw, ImageFont
 from datetime import datetime
+import threading as th
+# import sys
+# from multiprocessing.shared_memory import SharedMemory
 
 import pystray
 import psutil
+import darkdetect
+
+
+def callback(color: str):
+    # color in ('Light', 'Dark')
+    global black
+    black = not black
 
 
 def set_sec(v):
@@ -37,12 +47,15 @@ def sleepless():
 
 
 def exit_prog(icon):
-    icon.stop()
+    # global shm
+    # shm.close()
+    # shm.unlink()
+    icon._hide()
     os._exit(0)
 
 
 def get_image():
-    global sec, base_color
+    global sec, black
 
     info = round(psutil.cpu_percent(interval=sec))
     if info == 100:
@@ -51,9 +64,10 @@ def get_image():
         font_size, *pos_tuple = 24, 18, 14
 
     # More code but much more readable
-    black = base_color != 'white'
     if black and info < 50:
         colors_tuple = (0, 0, 0, 255)
+    elif black and info < 75:
+        colors_tuple = (230, 122, 5, 255)
     elif info < 50:
         colors_tuple = (255, 255, 255, 255)
     elif info < 75:
@@ -69,7 +83,12 @@ def get_image():
 
 
 def main():
-    global sec
+    global sec  # , shm
+
+    t = th.Thread(target=darkdetect.listener, args=(callback,))
+    t.daemon = True
+    t.start()
+
     menu = (pystray.MenuItem('1 sec', set_sec(1),
                              checked=lambda _: sec == 1, radio=True),
             pystray.MenuItem('0.5 sec', set_sec(0.5),
@@ -85,7 +104,6 @@ def main():
             pystray.MenuItem('Exit', exit_prog))
 
     icon = pystray.Icon('CpuIcon', get_image(), 'Percentual CPU usage', menu)
-
     icon.run_detached()
 
     signal22h = signal04h = 0
@@ -101,13 +119,22 @@ def main():
                 icon.notify('Z99')
                 signal04h += 1
 
-        icon._icon = get_image()
-        icon._update_icon()
+        icon.icon = get_image()
+
+        # if shm.buf.tobytes() == b'1':
+        #     shm.buf[:] = b'0'
+        #     exit_prog(icon)
 
 
 if __name__ == '__main__':
     ctypes.windll.shcore.SetProcessDpiAwareness(1)
     sec = 0.5
-    base_color = 'white'  # Change for getting black numbers
+    black = darkdetect.isLight()
     psutil.Process(os.getpid()).nice(128)
+    # try:
+    #     shm = SharedMemory(create=True, name='fakesignal', size=1)
+    # except OSError:
+    #     import time
+    #     time.sleep(1)
+    #    shm = SharedMemory(create=True, name='fakesignal', size=1)
     main()
