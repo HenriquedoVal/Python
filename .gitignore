@@ -1,1 +1,6 @@
 __pycache__
+pyenv
+secret_key.txt
+user.txt
+pt_error.txt
+TODO.txt
