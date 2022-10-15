@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="pt_Br">
+    <head>
+        <title>Agenda</title>
+        {% load static %}
+        <link rel="stylesheet" href="{% static 'stylelogin.css' %}">
+    </head>
+    <body>
+        <section>
+            <div class="login">
+                <h1>Login</h1>
+            </div>
+
+            <div class="usuario">
+              <form action="{% url 'login:submit' %}" method="post"> {% csrf_token %}  
+                <label>Usuário:</label>
+                <input type="text" name="username"><br>
+                <label>Senha:</label>
+                <input type="password" name="password">
+                <button type="submit">Entrar</button>
+              </form>
+            </div>
+            
+            <div class="erro">
+            {% for message in messages %}
+                <strong>Erro: </strong>{{ message }}
+            {% endfor %}
+            </div>
+        </section>
+    </body>
+</html>

@@ -1,0 +1,33 @@
+*{
+    font-family: 'Courier New', Courier, monospace;
+}
+
+body {
+    background-color: lightgreen;
+}
+
+section {
+    width: 50%;
+    height: 250px;
+    margin-left: 23%;
+    margin-top: 5%;
+    background-color: aliceblue;
+    border: 8px solid black;
+    border-radius: 25px;
+}
+
+.login {
+    text-align: center;
+}
+
+.usuario {
+    margin-left: 10%;
+}
+
+input {
+    align-self: center;
+}
+
+.erro {
+    text-align: center;
+}

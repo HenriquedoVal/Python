@@ -1,0 +1,27 @@
+{% extends "agenda/model_page.html" %}
+
+{% block content %}
+<h2>{% if event.id %}Editar{% else %}Novo{% endif %} evento</h2>
+
+<form action="{% url 'agenda:submit' %}" method="post"> {% csrf_token %}
+    <input type="number" name="event_id" value="{{ event.id }}" hidden>
+
+    <label>Título:</label>
+    <input type="text" name="title" size=22 value="{{ event.title }}"><br>
+
+    <label>Data:</label>                                           <!--%Y-%m-%dT%H:%M--!>
+    <input type="datetime-local" name="date" value="{{ event.date|date:'Y-m-d' }}{{ event.date|time:'\TH:i'}}"><br>
+    <label>Descrição:</label><br>
+    <textarea name="description" cols="28" rows="5">{{ event.description }}</textarea>
+    <br>
+
+    <label>Local:</label>
+    <input type="text" name="local" size="22" value="{{ event.local }}">
+    <br><br>
+
+    <button type="submit">Salvar</button>
+    <a href="{% url 'agenda:index' %}">
+        <button type="button">Cancelar</button>
+    </a>
+</form>
+{% endblock %}

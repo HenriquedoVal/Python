@@ -1,0 +1,23 @@
+{% extends "agenda/model_page.html" %}
+
+{% block content %}
+    <h2>Agendamentos</h2>
+    <ul>
+        {% for event in events %}
+            <li>
+                <div {% if event.islate %} style="color:red" {% endif %}
+                     {% if event.isimminent %} style="color:orange" {% endif %}>
+                    {{ event.title }} - {{ event.date }} 
+                    (<a href="{% url 'agenda:new' event.id %}">Editar</a> /
+                    <a href="{% url 'agenda:delete' event.id %}">Excluir</a>)
+                </div>
+            </li>
+        {% endfor %}
+    </ul>
+    <a href="{% url 'agenda:new' 0 %}">
+        <button type="button">Novo evento</button>
+    </a>
+    <a href="{% url 'agenda:history' %}">
+        <button type="button">Histórico</button>
+    </a>
+{% endblock %}
