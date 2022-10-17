@@ -40,4 +40,5 @@ class Event(models.Model):
         return self.date < timezone.now()
 
     def isimminent(self):
-        return self.date < timezone.now() + timedelta(hours=1)
+        now = timezone.now()
+        return now < self.date < now + timedelta(hours=1)
