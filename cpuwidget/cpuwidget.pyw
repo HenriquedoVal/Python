@@ -1,10 +1,10 @@
 import os
 import subprocess
 import ctypes
-from PIL import Image, ImageDraw, ImageFont
 from datetime import datetime
 import threading as th
 
+from PIL import Image, ImageDraw, ImageFont
 import pystray
 import psutil
 import darkdetect
