@@ -8,6 +8,7 @@ from PIL import Image, ImageDraw, ImageFont
 import pystray
 import psutil
 import darkdetect
+from chromepilot.utils import upgrade_available
 
 
 def callback(color: str):
@@ -100,6 +101,9 @@ def main():
 
     icon = pystray.Icon('CpuIcon', get_image(), 'Percentual CPU usage', menu)
     icon.run_detached()
+
+    if upgrade_available():
+        icon.notify('New chromedriver available.', 'Chromepilot')
 
     signal22h = signal04h = 0
     while 1:
