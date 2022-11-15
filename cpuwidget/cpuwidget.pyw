@@ -8,7 +8,7 @@ from PIL import Image, ImageDraw, ImageFont
 import pystray
 import psutil
 import darkdetect
-from chromepilot.utils import upgrade_available
+import chromepilot.utils
 
 
 def callback(color: str):
@@ -51,7 +51,7 @@ def exit_prog(icon):
 
 
 def get_image():
-    global sec, black
+    global black
 
     info = round(psutil.cpu_percent(interval=sec))
     if info == 100:
@@ -78,12 +78,56 @@ def get_image():
     return img
 
 
+def check_choco_updates():
+    global choco_update
+
+    out, _ = subprocess.Popen(
+        'choco outdated -r',
+        stdout=subprocess.PIPE,
+        creationflags=subprocess.CREATE_NO_WINDOW
+    ).communicate()
+
+    if out:
+        choco_update = True
+
+
+def check_chromedriver_update():
+    global chrome_update
+
+    if chromepilot.utils.upgrade_available():
+        chrome_update = True
+
+
+def check_pip_updates():
+    global pip_update
+
+    out, _ = subprocess.Popen(
+        'pip list -o',
+        stdout=subprocess.PIPE,
+        creationflags=subprocess.CREATE_NO_WINDOW
+    ).communicate()
+
+    for line in out.decode().splitlines()[2:]:
+        if not line.startswith(ignore_pip_updates):
+            pip_update = True
+            break  # noqa
+
+
+def check_for_updates():
+    th.Thread(target=check_choco_updates).start()
+    th.Thread(target=check_chromedriver_update).start()
+    th.Thread(target=check_pip_updates).start()
+
+
 def main():
-    global sec
+
+    global choco_update, chrome_update, pip_update
 
     t = th.Thread(target=darkdetect.listener, args=(callback,))
     t.daemon = True
     t.start()
+
+    check_for_updates()
 
     menu = (pystray.MenuItem('1 sec', set_sec(1),
                              checked=lambda _: sec == 1, radio=True),
@@ -97,25 +141,41 @@ def main():
             pystray.MenuItem('Sleepless', sleepless,
                              checked=get_state(5), radio=True),
             pystray.Menu.SEPARATOR,
+            pystray.MenuItem('Search for updates',
+                             lambda x: (check_for_updates())),
+            pystray.Menu.SEPARATOR,
             pystray.MenuItem('Exit', exit_prog))
 
     icon = pystray.Icon('CpuIcon', get_image(), 'Percentual CPU usage', menu)
     icon.run_detached()
 
-    if upgrade_available():
-        icon.notify('New chromedriver available.', 'Chromepilot')
-
     signal22h = signal04h = 0
     while 1:
 
-        if not signal22h and int(datetime.now().strftime('%j')) % 2 != 0:
+        if choco_update:
+            icon.notify('Chocolatey signs upgrades available', 'Chocolatey')
+            choco_update = False
+        if chrome_update:
+            icon.notify('New chromedriver available.', 'Chromepilot')
+            chrome_update = False
+        if pip_update:
+            icon.notify('Pip signs upgrades available', 'Pip')
+            pip_update = False
+
+        if not signal22h:
             if datetime.now().hour == 22:
-                icon.notify('Z99')
+                if int(datetime.now().strftime('%j')) % 2 != 0:
+                    icon.notify('Z99')
+
+                check_for_updates()
                 signal22h += 1
 
-        if not signal04h and int(datetime.now().strftime('%j')) % 2 == 0:
+        if not signal04h:
             if datetime.now().hour == 4 and datetime.now().minute == 30:
-                icon.notify('Z99')
+                if int(datetime.now().strftime('%j')) % 2 == 0:
+                    icon.notify('Z99')
+
+                check_for_updates()
                 signal04h += 1
 
         icon.icon = get_image()
@@ -123,7 +183,15 @@ def main():
 
 if __name__ == '__main__':
     ctypes.windll.shcore.SetProcessDpiAwareness(1)
+    psutil.Process(os.getpid()).nice(128)
+
+    chrome_update = False
+    choco_update = False
+    pip_update = False
     sec = 0.5
     black = darkdetect.isLight()
-    psutil.Process(os.getpid()).nice(128)
+    ignore_pip_updates = (
+        'charset-normalizer',
+    )
+
     main()
